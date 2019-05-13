@@ -4,40 +4,49 @@ chrome.runtime.onMessage.addListener(function(request,sender,sendResponse) {
 
 function fx(search_terms){
 
+    var df = new DocumentFragment();
 
     if(window.find){
         $(`*`).filter( function (){
             for (var search_index in search_terms){
                 var search_term = search_terms[search_index];
-                if (should_this_element_be_blocked(this, search_term)){
-                    break;
-                }
-
+                df = should_this_element_be_blocked(this, search_term, df)
             }
         })
     }
 
+    document.getElementsByTagName("body")[0].appendChild(df);
+
 
 }
 
-function should_this_element_be_blocked(element, search_term){
-    if(!is_this_a_spoiler_blocker_element(element) && _.includes(_.lowerCase(_.get(element, 'childNodes[0].nodeValue', '')), search_term)){
+function should_this_element_be_blocked(element, search_term, df){
+    if(isVisible(element) && !is_this_a_spoiler_blocker_element(element) && _.includes(_.lowerCase(_.get(element, 'childNodes[0].nodeValue', '')), search_term)){
         if (element.tagName == "EM" || element.tagName == "B" || element.tagName == "A" || element.tagName == "STRONG" ){
-            hide_element(element.parentNode, search_term)
-            return true
+            df = hide_element(element.parentNode, search_term, df)
+            return df
         }else{
-            hide_element(element, search_term)
-            return true
+            df = hide_element(element, search_term, df)
+            return df
         }
     }
-    return false
+    return df
+}
+
+function isVisible (ele) {
+    var style = window.getComputedStyle(ele);
+    return  style.width !== "0" &&
+        style.height !== "0" &&
+        style.opacity !== "0" &&
+        style.display!=='none' &&
+        style.visibility!== 'hidden';
 }
 
 function is_this_a_spoiler_blocker_element(element){
     return _.includes(_.get(element, 'className', ''), 'spoiler-blocker-') || _.includes(_.get(element, 'parentNode.className', ''), 'spoiler-blocker-')
 }
 
-function hide_element(selectedElement, search_term=""){
+function hide_element(selectedElement, search_term="", df){
     var wrapper = document.createElement('div');
 
     var width = selectedElement.offsetWidth;
@@ -59,6 +68,8 @@ function hide_element(selectedElement, search_term=""){
     wrapper.style.width = selectedElement.offsetWidth + "px";
     wrapper.style.margin = "1px 0 1px 0px";
     wrapper.style.position = "absolute"
+    wrapper.style.left = `${selectedElement.getBoundingClientRect().x}px`;
+    wrapper.style.top = `${selectedElement.getBoundingClientRect().y}px`;
 
     if(wrapper.style.position == "relative"){
         wrapper.style.position = "relative";
@@ -88,7 +99,9 @@ function hide_element(selectedElement, search_term=""){
     selectedElement.className += ` ${classname}`
 
     wrapper.addEventListener('click', onclick_spoiler)
-    selectedElement.parentNode.insertBefore(wrapper, selectedElement);
+    //selectedElement.parentNode.insertBefore(wrapper, selectedElement);
+    df.appendChild(wrapper);
+    return df;
 
 }
 
@@ -104,8 +117,10 @@ function run_blockers(){
 }
 
 function check_element_mutation(addedElements){
+
     chrome.storage.sync.get('blockers', function(data) {
         if (data.blockers.length >= 0) {
+            var df = new DocumentFragment();
 
             for (var i = 0; i < addedElements.length; i++){
                 var new_node = addedElements[i];
@@ -117,16 +132,20 @@ function check_element_mutation(addedElements){
                         for (var blocker in data.blockers) {
                             for (var term_index in SPOILERS[data.blockers[blocker]]) {
                                 var search_term = SPOILERS[data.blockers[blocker]][term_index]
-                                if (should_this_element_be_blocked(this, search_term)) {
-                                    return;
-                                }
+                                df = should_this_element_be_blocked(this, search_term, df)
+
                             }
                         }
                     })
                 }
             }
+
+            document.getElementsByTagName("body")[0].appendChild(df);
+
         }
     })
+
+
 }
 
 
