@@ -40,23 +40,10 @@ function is_this_a_spoiler_blocker_element(element){
 function hide_element(selectedElement, search_term=""){
     var wrapper = document.createElement('div');
 
-    var width = selectedElement.offsetWidth;
-    var height = selectedElement.offsetHeight;
-    /*var children = selectedElement.childNodes;
-
-    if(children){
-        for (var i = 0; i < children.length; i++){
-            width += children.offsetWidth
-            height += children.offsetHeight;
-        }
-    }*/
-
-
-
     wrapper.style.color = "white";
     wrapper.style.backgroundColor = "black";
-    wrapper.style.height = "calc(" + selectedElement.offsetHeight + "px)";
-    wrapper.style.width = selectedElement.offsetWidth + "px";
+    wrapper.style.height = `${selectedElement.offsetHeight}px`
+    wrapper.style.width = `${selectedElement.offsetWidth}px`
     wrapper.style.margin = "1px 0 1px 0px";
     wrapper.style.position = "absolute"
 
@@ -111,7 +98,6 @@ function check_element_mutation(addedElements){
                 var new_node = addedElements[i];
 
                 if(!is_this_a_spoiler_blocker_element(new_node) && new_node.parentNode) {
-
 
                     $(new_node.parentNode).find("*").filter(function () {
                         for (var blocker in data.blockers) {
