@@ -2,7 +2,7 @@
 function show_more_spoilers(){
 
 
-    for (var i = 0; i<1000; i++){
+    for (var i = 0; i<10000; i++){
         var new_element = document.createElement("div")
 
         new_element.textContent = "tony stark dies yo!"

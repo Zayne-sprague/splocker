@@ -20,30 +20,55 @@ function fx(search_terms){
 
 }
 
-function should_this_element_be_blocked(element, search_term){
-    if(!is_this_a_spoiler_blocker_element(element) && _.includes(_.lowerCase(_.get(element, 'childNodes[0].nodeValue', '')), search_term)){
-        if (element.tagName == "EM" || element.tagName == "B" || element.tagName == "A" || element.tagName == "STRONG" ){
-            hide_element(element.parentNode, search_term)
-            return true
-        }else{
-            hide_element(element, search_term)
-            return true
+function should_this_element_be_blocked(element, search_term, bypass_spoiler_tag_search=false){
+
+    if(bypass_spoiler_tag_search || !is_this_a_spoiler_blocker_element(element)){
+        //~1133.7ms twitter
+        if (_.get(element, "tagName") == "SCRIPT" || _.get(element, "tagName") == "STYLE" ) {
+            return false;
         }
+        //2790.2ms twitter
+        if (_.includes(_.lowerCase(_.get(element, 'childNodes[0].nodeValue', '')), search_term)) {
+            if (element.tagName == "EM" || element.tagName == "B" || element.tagName == "A" || element.tagName == "STRONG") {
+                hide_element(element.parentNode, search_term)
+                return true
+            }else if ( element.tagName=="YT-FORMATTED-STRING" && (_.get(element, 'parentNode.parentNode.parentNode.tagName') == "YTD-VIDEO-RENDERER" || _.get(element, 'parentNode.parentNode.parentNode.tagName') == "YTD-EXPANDER") && !is_this_a_spoiler_blocker_element(element.parentNode.parentNode) ){ // youtube specific
+                hide_element(element.parentNode.parentNode, "", 1000)
+                return true
+            } else {
+                hide_element(element, search_term)
+                return true
+            }
+        }
+
     }
     return false
 }
 
 function is_this_a_spoiler_blocker_element(element){
+    //614.8ms on reddit
     return _.includes(_.get(element, 'className', ''), 'spoiler-blocker-') || _.includes(_.get(element, 'parentNode.className', ''), 'spoiler-blocker-')
+
+    //733.2ms on reddit
+    //return _.includes(`${_.get(element, 'className', '')} ${_.get(element, 'parentNode.className', '')}`, 'spoiler-blocker-')
+
+    //1000^ms on reddit
+    //return `${_.get(element, 'className', '')} ${_.get(element, 'parentNode.className', '')}`.indexOf('spoiler-blocker-') > -1
+
+    //1808.3 on reddit
+    //return `${_.get(element, 'className', '')}`.indexOf('spoiler-blocker-') > -1 || `${_.get(element, 'parentNode.className', '')}`.indexOf('spoiler-blocker-') > -1
+
+    //breaks browser?
+    //return `${_.get(element, 'className', '')}`.match("/spoiler-blocker-/") || `${_.get(element, 'parentNode.className', '')}`.match("/spoiler-blocker-/")
 }
 
-function hide_element(selectedElement, search_term=""){
-    var wrapper = document.createElement('div');
-
+function hide_element(selectedElement, search_term="", z_index_override=null){
+    let wrapper = document.createElement('div');
+    let elem = $(selectedElement)
     wrapper.style.color = "white";
     wrapper.style.backgroundColor = "black";
-    wrapper.style.height = `${selectedElement.offsetHeight}px`
-    wrapper.style.width = `${selectedElement.offsetWidth}px`
+    wrapper.style.height = `${elem.outerHeight()}px`; //selectedElement.offsetHeight + "px";
+    wrapper.style.width = `${elem.outerWidth()}px`; //selectedElement.offsetWidth + "px";
     wrapper.style.margin = "1px 0 1px 0px";
     wrapper.style.position = "absolute"
 
@@ -61,7 +86,7 @@ function hide_element(selectedElement, search_term=""){
     }
 
 
-    wrapper.style.zIndex = selectedElement.style.zIndex;
+    wrapper.style.zIndex = z_index_override || selectedElement.style.zIndex;
     wrapper.style["overflow-wrap"] = "break-wrap";
     wrapper.style["text-overflow"] = "ellipsis";
 
@@ -91,28 +116,48 @@ function run_blockers(){
 }
 
 function check_element_mutation(addedElements){
+
     chrome.storage.sync.get('blockers', function(data) {
         if (data.blockers.length >= 0) {
 
-            for (var i = 0; i < addedElements.length; i++){
-                var new_node = addedElements[i];
+            for (let i = 0; i < addedElements.length; i++){
+                 const new_node = addedElements[i];
 
-                if(!is_this_a_spoiler_blocker_element(new_node) && new_node.parentNode) {
 
-                    $(new_node.parentNode).find("*").filter(function () {
-                        for (var blocker in data.blockers) {
-                            for (var term_index in SPOILERS[data.blockers[blocker]]) {
-                                var search_term = SPOILERS[data.blockers[blocker]][term_index]
-                                if (should_this_element_be_blocked(this, search_term)) {
-                                    return;
-                                }
-                            }
-                        }
-                    })
+                for (const blocker in data.blockers) {
+                    var reg = build_regex(SPOILERS[data.blockers[blocker]])
+
+                    check_for_regex(new_node.parentNode, reg);
                 }
+
             }
         }
     })
+}
+
+
+function build_regex(tags){
+    return new RegExp(`(${_.join(tags, '|')})`, 'i')
+}
+
+function check_for_regex(element, regex){
+    if(regex.test(_.get(element, 'innerText')) && !is_this_a_spoiler_blocker_element(element) && element.tagName != "SCRIPT"){
+        if(regex.test(_.get(element, 'childNodes[0].nodeValue',''))){
+
+            if(element.parentNode && (element.tagName == "EM" || element.tagName == "B" || element.tagName == "A" || element.tagName == "STRONG" )) {
+                hide_element(element.parentNode)
+            }else if ( element.tagName=="YT-FORMATTED-STRING" && (_.get(element, 'parentNode.parentNode.parentNode.tagName') == "YTD-VIDEO-RENDERER" || _.get(element, 'parentNode.parentNode.parentNode.tagName') == "YTD-EXPANDER") && !is_this_a_spoiler_blocker_element(element.parentNode.parentNode) ){ // youtube specific
+                hide_element(element.parentNode.parentNode, "", 1000)
+            } else {
+                hide_element(element, "");
+            }
+
+        }else{
+            for(let i = 0; i<_.size(_.get(element,'childNodes')); i++){
+                check_for_regex(_.get(element, `childNodes[${i}]`), regex)
+            }
+        }
+    }
 }
 
 
