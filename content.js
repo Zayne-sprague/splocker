@@ -4,18 +4,11 @@ chrome.runtime.onMessage.addListener(function(request,sender,sendResponse) {
 
 function fx(search_terms){
 
+    var reg = build_regex(search_terms)
 
-    if(window.find){
-        $(`*`).filter( function (){
-            for (var search_index in search_terms){
-                var search_term = search_terms[search_index];
-                if (should_this_element_be_blocked(this, search_term)){
-                    break;
-                }
 
-            }
-        })
-    }
+    check_for_regex(document.getElementsByTagName("HTML")[0], reg)
+
 
 
 }
@@ -48,18 +41,6 @@ function should_this_element_be_blocked(element, search_term, bypass_spoiler_tag
 function is_this_a_spoiler_blocker_element(element){
     //614.8ms on reddit
     return _.includes(_.get(element, 'className', ''), 'spoiler-blocker-') || _.includes(_.get(element, 'parentNode.className', ''), 'spoiler-blocker-')
-
-    //733.2ms on reddit
-    //return _.includes(`${_.get(element, 'className', '')} ${_.get(element, 'parentNode.className', '')}`, 'spoiler-blocker-')
-
-    //1000^ms on reddit
-    //return `${_.get(element, 'className', '')} ${_.get(element, 'parentNode.className', '')}`.indexOf('spoiler-blocker-') > -1
-
-    //1808.3 on reddit
-    //return `${_.get(element, 'className', '')}`.indexOf('spoiler-blocker-') > -1 || `${_.get(element, 'parentNode.className', '')}`.indexOf('spoiler-blocker-') > -1
-
-    //breaks browser?
-    //return `${_.get(element, 'className', '')}`.match("/spoiler-blocker-/") || `${_.get(element, 'parentNode.className', '')}`.match("/spoiler-blocker-/")
 }
 
 function hide_element(selectedElement, search_term="", z_index_override=null){
@@ -137,7 +118,7 @@ function check_element_mutation(addedElements){
 
 
 function build_regex(tags){
-    return new RegExp(`(${_.join(tags, '|')})`, 'i')
+    return new RegExp(`\\b(?<!\\.)${_.join(tags, '|')}[.]?\\b`, 'i')
 }
 
 function check_for_regex(element, regex){
