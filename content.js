@@ -118,7 +118,7 @@ function check_element_mutation(addedElements){
 
 
 function build_regex(tags){
-    return new RegExp(`\\b(?<!\\.)${_.join(tags, '|')}[.]?\\b`, 'i')
+    return new RegExp(`\\b(?<!\\.)(${_.join(tags, '|')})[.]?\\b`, 'i')
 }
 
 function check_for_regex(element, regex){
