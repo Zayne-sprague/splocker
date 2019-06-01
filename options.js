@@ -32,44 +32,74 @@ function construct_movie_options(){
 
             let button = document.createElement('button')
             button.style.background = `url(${url})`;
-            button.style.width = "200px"
-            button.style.height = "290px"
+            button.style.width = "189px"
+            button.style.height = "280px"
             button.style["background-repeat"] = "no-repeat"
             button.style["background-size"] = "contain"
             button.style["border"] = "none"
             button.style["filter"] = "drop-shadow(0px 0px 35px #444444)"
-            button.style["margin"] = "60px";
+            button.style["margin"] = "20px";
+            button.style["padding"] = "0px"
+            button.style["cursor"] = "pointer"
+
+
+
+            button.addEventListener('click', ()=>{})
+
+            let movieTile = document.createElement("div")
+            movieTile.style.display = "inline-block"
+            movieTile.style.margin = "40px"
+            movieTile.style.cursor = "pointer"
+            movieTile.appendChild(button);
+
+            let movieTileHeader = document.createElement("div")
+            movieTileHeader.style.textAlign = "center"
+            movieTileHeader.style.color = "white"
+            movieTileHeader.style.fontSize = "20px"
+            movieTileHeader.textContent = title
+
+            movieTile.addEventListener("mouseenter", function(){
+                movieTileHeader.style.textDecoration = "underline"
+            })
+
+            movieTile.addEventListener("mouseleave", function(){
+                movieTileHeader.style.textDecoration = ""
+            })
 
             if(selected_tiles.includes(key)){
                 button.style["filter"] = "drop-shadow(0px 0px 35px #FFFFFF)"
             }
 
-            button.addEventListener('click', function(){
-                chrome.storage.sync.get('blockers', function(data) {
+            movieTile.addEventListener("click", this.select_tile.bind(this, key, button, movieTileHeader))
 
-                    let selected_tiles = data.blockers
+            movieTile.appendChild(movieTileHeader)
 
-                    if(selected_tiles.includes(key)){
-                        selected_tiles = arrayRemove(selected_tiles, key)
-                        button.style["filter"] = "drop-shadow(0px 0px 35px #444444)"
-                    }else{
-                        selected_tiles.push(key);
-                        button.style["filter"] = "drop-shadow(0px 0px 35px #FFFFFF)"
-                    }
-
-                    chrome.storage.sync.set({blockers: selected_tiles}, function(){
-                        console.log("blocking " + selected_tiles);
-                    })
-                })
-
-            })
-
-            movie_tiles_div.appendChild(button);
+            movie_tiles_div.appendChild(movieTile);
 
 
         }
 
     })
+}
+
+function select_tile(key, button, header){
+    chrome.storage.sync.get('blockers', function(data) {
+
+        let selected_tiles = data.blockers
+
+        if(selected_tiles.includes(key)){
+            selected_tiles = arrayRemove(selected_tiles, key)
+            button.style["filter"] = "drop-shadow(0px 0px 35px #444444)"
+        }else{
+            selected_tiles.push(key);
+            button.style["filter"] = "drop-shadow(0px 0px 35px #FFFFFF)"
+        }
+
+        chrome.storage.sync.set({blockers: selected_tiles}, function(){
+            console.log("blocking " + selected_tiles);
+        })
+    })
+
 }
 
 construct_movie_options()
