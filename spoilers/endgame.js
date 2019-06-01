@@ -7,7 +7,6 @@ const endgame =
         "iron man",
         "ironman",
         "tony stark",
-        "tony dies",
         "infinity gauntlet",
         "marvel",
         "thanos",

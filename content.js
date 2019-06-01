@@ -47,11 +47,12 @@ function hide_element(selectedElement, search_term="", z_index_override=null){
     let wrapper = document.createElement('div');
     let elem = $(selectedElement)
     wrapper.style.color = "white";
-    wrapper.style.backgroundColor = "black";
+    wrapper.style.backgroundColor = "#100e17";
     wrapper.style.height = `${elem.outerHeight()}px`; //selectedElement.offsetHeight + "px";
     wrapper.style.width = `${elem.outerWidth()}px`; //selectedElement.offsetWidth + "px";
     wrapper.style.margin = "1px 0 1px 0px";
     wrapper.style.position = "absolute"
+    wrapper.style.borderRadius = "3px"
 
     if(wrapper.style.position == "relative"){
         wrapper.style.position = "relative";
@@ -106,7 +107,7 @@ function check_element_mutation(addedElements){
 
 
                 for (const blocker in data.blockers) {
-                    var reg = build_regex(SPOILERS[data.blockers[blocker]])
+                    let reg = build_regex(SPOILERS[data.blockers[blocker]])
 
                     check_for_regex(new_node.parentNode, reg);
                 }
@@ -145,7 +146,10 @@ function check_for_regex(element, regex){
 function onclick_spoiler(e){
     e.preventDefault()
 
-    e.target.parentNode.removeChild(e.target);
+
+    $(e.target).fadeOut("slow", "swing", function(){
+        e.target.parentNode.removeChild(e.target);
+    })
 
 }
 
@@ -157,13 +161,16 @@ function uuidv4() {
     });
 }
 
+
+// ---- ON LOAD ---- //
 run_blockers();
+// ----------------- //
 
 
 
 // Callback function to execute when mutations are observed
 var callback = function(mutationsList, observer) {
-    for(var mutation of mutationsList) {
+    for(let mutation of mutationsList) {
         if (mutation.type == 'childList') {
             check_element_mutation(mutation.addedNodes);
         }
@@ -176,9 +183,9 @@ var callback = function(mutationsList, observer) {
 
 window.addEventListener("load", function(){
     // Options for the observer (which mutations to observe)
-    var config = { childList: true, subtree: true };
+    let config = { childList: true, subtree: true };
 
-    var observer = new MutationObserver(callback);
+    let observer = new MutationObserver(callback);
     observer.observe(document.getElementsByTagName("body")[0], config);
 
 })
