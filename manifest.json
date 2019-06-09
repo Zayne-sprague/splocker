@@ -16,10 +16,19 @@
       "js": [
          "jquery.min.js",
          "lodash.min.js",
-         "content.js",
+         "util.js",
          "spoilers/endgame.js",
          "spoilers/game_of_thrones.js",
-         "spoilers/manifest.js"
+         "spoilers/manifest.js",
+         "blockers/basic.js",
+         "blockers/twitter.js",
+         "blockers/reddit.js",
+         "blockers/youtube.js",
+         "blockers/facebook.js",
+         "blockers/google.js",
+         "blockers/tumblr.js",
+         "content.js"
+
       ]
     }
   ],
