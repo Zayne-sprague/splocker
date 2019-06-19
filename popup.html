@@ -4,7 +4,7 @@
     <head>
         <style>
             body {
-                width: 250px;
+                width: 300px;
                 height: 140px;
                 background-color: #111111;
 
@@ -15,11 +15,28 @@
                 outline: none;
                 margin: 10px;
             }
+
+            .tileHeader{
+                color: white;
+                text-align: center;
+                font-size: 30px;
+            }
+
+            .tileSlider{
+                height: 200px;
+                overflow: scroll;
+                white-space: nowrap;
+            }
         </style>
     </head>
 
     <body>
-        <div id="movieTiles"></div>
+        <div class="tileHeader">Movies</div>
+        <div class="tileSlider" id="movieTiles">
+        </div>
+        <div class="tileHeader">TV Shows</div>
+        <div class="tileSlider" id="showTiles">
+        </div>
         <script src="popup.js"></script>
         <script src="spoilers/manifest.js"></script>
     </body>
