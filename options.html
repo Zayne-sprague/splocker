@@ -30,15 +30,72 @@
         }
 
 
+        #createForm{
+            display: none;
+            color: white;
+            font-size: 40px;
+        }
+
+
     </style>
 </head>
 <body>
-<div class="tileHeader">Movies</div>
-<div class="tileSlider" id="movieTiles">
+
+<!-- HOME, tile selection and blocker page -->
+<div id="home">
+    <div class="tileHeader">Movies</div>
+    <div class="tileSlider" id="movieTiles">
+    </div>
+    <div class="tileHeader">TV Shows</div>
+    <div class="tileSlider" id="showTiles">
+    </div>
+    <div class="tileHeader">Custom</div>
+    <div class="tileSlider" id="customTiles">
+    </div>
 </div>
-<div class="tileHeader">TV Shows</div>
-<div class="tileSlider" id="showTiles">
+<!-- -------------------------------------- -->
+
+
+<!-- CREATE FORM, form to create a new tile -->
+<div id="createForm">
+    <div class="formTitle">Let's make a new blocker!</div>
+    <br/>
+    <br/>
+
+    <div class="formInputs">
+        <div id="backButtonContainer">
+            <button id="formBackButton">Back</button>
+        </div>
+        <div id="titleInputContainer">
+            What do you want to call this blocker?
+            <br>
+            <input type="text" name="title">
+        </div>
+
+        <div id="blockersInputContainer">
+            What are key words you want to block (comma separate lists "tony stark, ironman" for instance will block both the words - Tony Stark, and Ironman, not case-sensitive)
+            <br>
+            <input type="text" name="blockers">
+        </div>
+
+        <div id="imageInputContainer">
+            Would you like to put an image to your blocker? (optional)
+            <br>
+            <input type="text" name="image">
+        </div>
+
+
+        <div id="nextButtonContainer">
+            <button id="formNextButton" class="nextButton">Next</button>
+        </div>
+
+    </div>
+
 </div>
+<!-- -------------------------------------- -->
+
 </body>
+<script src="lodash.min.js"></script>
+<script src="create_blocker_form.js"></script>
 <script src="options.js"></script>
 </html>

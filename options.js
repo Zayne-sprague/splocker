@@ -4,6 +4,7 @@
 
 let movie_tiles_div = document.getElementById('movieTiles');
 let show_tiles_div = document.getElementById('showTiles');
+let custom_tiles_div = document.getElementById("customTiles");
 
 const BLOCKABLE_ITEMS = [
     {"title": "Avengers Endgame", "type":"movie", "key": "endgame", "url": "https://m.media-amazon.com/images/M/MV5BMTc5MDE2ODcwNV5BMl5BanBnXkFtZTgwMzI2NzQ2NzM@._V1_.jpg"},
@@ -55,9 +56,6 @@ function construct_movie_options(){
             button.style["padding"] = "0px"
             button.style["cursor"] = "pointer"
 
-
-
-
             let tile = document.createElement("div")
             tile.style.display = "inline-block"
             tile.style.margin = "40px"
@@ -69,14 +67,6 @@ function construct_movie_options(){
             tileHeader.style.color = "white"
             tileHeader.style.fontSize = "20px"
             tileHeader.textContent = title
-
-            /*tile.addEventListener("mouseenter", function(){
-                tileHeader.style.textDecoration = "underline"
-            })
-
-            tile.addEventListener("mouseleave", function(){
-                tileHeader.style.textDecoration = ""
-            })*/
 
             if(selected_tiles.includes(key)){
                 button.style["filter"] = "drop-shadow(0px 0px 35px #FFFFFF)"
@@ -96,6 +86,75 @@ function construct_movie_options(){
         }
 
     })
+}
+
+function construct_custom_options(){
+    chrome.storage.sync.get('blockers', function(data) {
+        let selected_tiles = data.blockers
+
+        chrome.storage.sync.get('custom_blockers', function (data) {
+            let custom_tiles = _.union(_.get(data, 'custom_blockers', []), [custom_blocker_data()])
+
+            for (var item in custom_tiles) {
+
+                let title = custom_tiles[item]['title']
+                let image_type = custom_tiles[item]['image']['type']
+                let image_url = custom_tiles[item]['image']['url']
+                let blockers = custom_tiles[item]['blockers']
+
+
+                let button = document.createElement('button')
+                button.style.background = `url(${image_url})`;
+                button.style.width = "189px"
+                button.style.height = "280px"
+                button.style["background-repeat"] = "no-repeat"
+                button.style["background-size"] = "contain"
+                button.style["border"] = "none"
+                button.style["filter"] = "drop-shadow(0px 0px 35px #444444)"
+                button.style["margin"] = "20px";
+                button.style["padding"] = "0px"
+                button.style["cursor"] = "pointer"
+
+                let tile = document.createElement("div")
+                tile.style.display = "inline-block"
+                tile.style.margin = "40px"
+                tile.style.cursor = "pointer"
+                tile.style.textAlign = "center"
+                tile.appendChild(button);
+
+                let tileHeader = document.createElement("div")
+                tileHeader.style.color = "white"
+                tileHeader.style.fontSize = "20px"
+                tileHeader.textContent = title
+
+                if (selected_tiles.includes(title)) {
+                    button.style["filter"] = "drop-shadow(0px 0px 35px #FFFFFF)"
+                }
+
+                if(_.get(blockers, '[0]', '') != "ONCLICK_HANDLER_SPECIAL"){
+                    tile.addEventListener("click", this.select_tile.bind(this, title, button, tileHeader))
+                }else{
+                    tile.addEventListener('click', start_form.bind(this))
+                }
+
+                tile.appendChild(tileHeader)
+
+                custom_tiles_div.appendChild(tile);
+
+            }
+
+        })
+    })
+
+
+}
+
+function custom_blocker_data(){
+    return {
+        title: "",
+        image: {"type": "internal", "url": "images/New_Blocker.png"},
+        blockers: ["ONCLICK_HANDLER_SPECIAL"]
+    }
 }
 
 function select_tile(key, button, header){
@@ -119,3 +178,4 @@ function select_tile(key, button, header){
 }
 
 construct_movie_options()
+construct_custom_options()
