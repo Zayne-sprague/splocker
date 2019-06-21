@@ -1,26 +1,36 @@
 function block_content(elem=document.getElementsByTagName("HTML")[0]){
     chrome.storage.sync.get('blockers', function(data) {
+        chrome.storage.sync.get('blockers_custom', function (custom_data) {
 
-        let selected_tiles = data.blockers
-        build_regex(get_blocker_array(selected_tiles))
-        if (!REGEX) { return; }
+            let selected_tiles = _.get(data, 'blockers', [])
+            let customBlockers = []
+            let customSelectedTiles = _.get(custom_data, 'blockers_custom', {})
+            for (var key in customSelectedTiles) {
+                customBlockers = _.union(customBlockers, customSelectedTiles[key])
+            }
 
-        const domain = window.location.hostname;
-        if(domain == "twitter.com"){
-            block_twitter(elem);
-        }else if(domain == "www.reddit.com"){
-            block_reddit(elem);
-        }else if(domain == "www.youtube.com") {
-            block_youtube(elem);
-        }else if(domain == "www.facebook.com"){
-            block_facebook(elem);
-        }else if(domain == "www.google.com"){
-            block_google(elem);
-        }else if(domain == "www.tumblr.com"){
-            block_tumblr(elem);
-        } else {
-            check_for_regex(elem);
-        }
+            build_regex(_.union(get_blocker_array(selected_tiles), customBlockers))
+            if (!REGEX) {
+                return;
+            }
+
+            const domain = window.location.hostname;
+            if (domain == "twitter.com") {
+                block_twitter(elem);
+            } else if (domain == "www.reddit.com") {
+                block_reddit(elem);
+            } else if (domain == "www.youtube.com") {
+                block_youtube(elem);
+            } else if (domain == "www.facebook.com") {
+                block_facebook(elem);
+            } else if (domain == "www.google.com") {
+                block_google(elem);
+            } else if (domain == "www.tumblr.com") {
+                block_tumblr(elem);
+            } else {
+                check_for_regex(elem);
+            }
+        })
     })
 }
 

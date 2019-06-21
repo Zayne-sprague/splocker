@@ -16,8 +16,9 @@ let next_button = document.getElementById('formNextButton');
 let actions_set = false;
 // ^^^^^^^^^^^^^^^^^^^^^
 
-
-let state = [show_title, show_blockers, show_image]
+//TODO - find a way to save images locally, can't save it in server
+let state = [show_title, show_blockers]//, show_image]
+let validator = [validate_title, validate_blockers]
 let current_state;
 
 function start_form(){
@@ -60,6 +61,10 @@ function form_next(e){
         return;
     }
 
+    if (!validator[current_state]()){
+        return;
+    }
+
     window.setTimeout(()=>{
         if (current_state != _.size(state) - 1){
             current_state += 1;
@@ -68,11 +73,6 @@ function form_next(e){
             form_submit();
         }
     }, 100);
-
-
-
-
-
 }
 
 function form_run_state(){
@@ -87,7 +87,7 @@ function show_home(){
         return;
     }
 
-    home.style.display = "unset";
+    home.style.display = "block";
     form.style.display = "none";
 
     reset_form();
@@ -103,7 +103,7 @@ function show_form(){
 
 
     home.style.display = "none";
-    form.style.display = "unset";
+    form.style.display = "table";
 }
 
 function show_title(){
@@ -114,13 +114,11 @@ function show_title(){
     show_form()
 
     //show and hide the respective containers for this page
-    title_container.style.display = 'unset';
+    title_container.style.display = 'block';
     blocker_container.style.display = 'none';
     image_container.style.display = 'none';
-    next_container.style.display = 'unset';
+    next_container.style.display = 'block';
     //                                                   //
-
-
 
 }
 
@@ -133,10 +131,12 @@ function show_blockers(){
 
     //show and hide the respective containers for this page
     title_container.style.display = 'none';
-    blocker_container.style.display = 'unset';
+    blocker_container.style.display = 'block';
     image_container.style.display = 'none';
-    next_container.style.display = 'unset';
+    next_container.style.display = 'block';
     //                                                   //
+
+    next_button.innerText = "Create"
 }
 
 function show_image(){
@@ -148,13 +148,54 @@ function show_image(){
     //show and hide the respective containers for this page
     title_container.style.display = 'none';
     blocker_container.style.display = 'none';
-    image_container.style.display = 'unset';
-    next_container.style.display = 'unset';
+    image_container.style.display = 'block';
+    next_container.style.display = 'block';
     //                                                   //
 }
 
+function validate_title(){
+    if ($('#titleInput').val() == "" || $('#titleInput').val() == " "){
+        return false;
+    }
+    return true;
+}
+
+function validate_blockers(){
+    var tags = $(document.getElementsByClassName('tagHere')).find('div span');
+
+    if (tags.length <= 0){
+        document.getElementById("phrase_note_warning").innerText = "Needs at least 1 item to block"
+        return false;
+    }
+
+    return true;
+}
+
 function form_submit(){
-    show_home();
+    chrome.storage.sync.get('custom_blockers', function (data) {
+
+        var tags = $(document.getElementsByClassName('tagHere')).find('div span');
+        var blockers = []
+        for (var i = 0; i < tags.length; i++){
+            blockers.push(tags[i].innerText);
+        }
+        var title = $('#titleInput').val();
+        var new_data = {
+            "blockers": blockers,
+            "title": title,
+            "image": {"type": "internal", "url": "images/New_Blocker.png"}
+        }
+
+        let custom_tiles = _.get(data, 'custom_blockers', [])
+        custom_tiles.push(new_data);
+
+        chrome.storage.sync.set({'custom_blockers': custom_tiles})
+        construct_custom_options()
+
+        show_home();
+
+    })
+
 }
 
 function reset_form(){
@@ -163,8 +204,14 @@ function reset_form(){
     blocker_container.style.display = 'none';
     image_container.style.display = 'none';
     next_container.style.display = 'none';
-    //                                                   //
+    //
 
+    document.getElementById("phrase_note_warning").innerText = "";
+    var tags = $(document.getElementsByClassName('tagHere')).find('div');
+    for (var i = 0; i < tags.length; i++){
+        tags[i].remove()
+    }
+    $('#titleInput').val("")
 
     current_state = 0;
 }

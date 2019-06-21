@@ -69,7 +69,7 @@ function construct_movie_options(){
             tileHeader.textContent = title
 
             if(selected_tiles.includes(key)){
-                button.style["filter"] = "drop-shadow(0px 0px 35px #FFFFFF)"
+                button.style["filter"] = "drop-shadow(0px 0px 25px #FFFFFF)"
             }
 
             tile.addEventListener("click", this.select_tile.bind(this, key, button, tileHeader))
@@ -89,11 +89,15 @@ function construct_movie_options(){
 }
 
 function construct_custom_options(){
+    clear_custom_tiles();
+
+
     chrome.storage.sync.get('blockers', function(data) {
         let selected_tiles = data.blockers
 
         chrome.storage.sync.get('custom_blockers', function (data) {
             let custom_tiles = _.union(_.get(data, 'custom_blockers', []), [custom_blocker_data()])
+
 
             for (var item in custom_tiles) {
 
@@ -128,11 +132,11 @@ function construct_custom_options(){
                 tileHeader.textContent = title
 
                 if (selected_tiles.includes(title)) {
-                    button.style["filter"] = "drop-shadow(0px 0px 35px #FFFFFF)"
+                    button.style["filter"] = "drop-shadow(0px 0px 25px #FFFFFF)"
                 }
 
                 if(_.get(blockers, '[0]', '') != "ONCLICK_HANDLER_SPECIAL"){
-                    tile.addEventListener("click", this.select_tile.bind(this, title, button, tileHeader))
+                    tile.addEventListener("click", this.select_custom_tile.bind(this, title, blockers, button, tileHeader))
                 }else{
                     tile.addEventListener('click', start_form.bind(this))
                 }
@@ -147,6 +151,14 @@ function construct_custom_options(){
     })
 
 
+}
+
+function clear_custom_tiles(){
+    let tiles = $("#customTiles div")
+
+    for (var i = 0; i < tiles.length; i++){
+        tiles.remove();
+    }
 }
 
 function custom_blocker_data(){
@@ -167,7 +179,7 @@ function select_tile(key, button, header){
             button.style["filter"] = "drop-shadow(0px 0px 35px #444444)"
         }else{
             selected_tiles.push(key);
-            button.style["filter"] = "drop-shadow(0px 0px 35px #FFFFFF)"
+            button.style["filter"] = "drop-shadow(0px 0px 25px #FFFFFF)"
         }
 
         chrome.storage.sync.set({blockers: selected_tiles}, function(){
@@ -176,6 +188,30 @@ function select_tile(key, button, header){
     })
 
 }
+
+function select_custom_tile(key, blockers, button, header){
+    chrome.storage.sync.get('blockers_custom', function(data) {
+
+        let selected_tiles = _.get(data, 'blockers_custom', {})
+
+        if(_.get(selected_tiles, key)){
+            delete selected_tiles[`${key}`]
+            button.style["filter"] = "drop-shadow(0px 0px 35px #444444)"
+        }else{
+            selected_tiles[key] = blockers;
+            button.style["filter"] = "drop-shadow(0px 0px 25px #FFFFFF)"
+        }
+
+        chrome.storage.sync.set({blockers_custom: selected_tiles}, function(){
+            console.log("blocking " + selected_tiles);
+        })
+    })
+
+}
+
+//TODO - this is good for debugging custom blockers
+//chrome.storage.sync.set({'custom_blockers': []})
+
 
 construct_movie_options()
 construct_custom_options()
