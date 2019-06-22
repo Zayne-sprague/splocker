@@ -97,63 +97,67 @@ function construct_custom_options(){
 
         chrome.storage.sync.get('custom_blockers', function (data) {
             let custom_tiles = _.union(_.get(data, 'custom_blockers', []), [custom_blocker_data()])
+            chrome.storage.sync.get('blockers_custom', function (custom_data) {
+                let custom_blockers = custom_data.blockers_custom;
 
 
-            for (var item in custom_tiles) {
+                for (var item in custom_tiles) {
 
-                let title = custom_tiles[item]['title']
-                let image_type = custom_tiles[item]['image']['type']
-                let image_url = custom_tiles[item]['image']['url']
-                let blockers = custom_tiles[item]['blockers']
-
-
-                let button = document.createElement('button')
-                button.style.background = `url(${image_url})`;
-                button.style.width = "189px"
-                button.style.height = "280px"
-                button.style["background-repeat"] = "no-repeat"
-                button.style["background-size"] = "contain"
-                button.style["border"] = "none"
-                button.style["filter"] = "drop-shadow(0px 0px 35px #444444)"
-                button.style["margin"] = "20px";
-                button.style["padding"] = "0px"
-                button.style["cursor"] = "pointer"
-
-                let tile = document.createElement("div")
-                tile.style.position = "relative"
-                tile.style.display = "inline-block"
-                tile.style.margin = "40px"
-                tile.style.cursor = "pointer"
-                tile.style.textAlign = "center"
-                tile.appendChild(button);
+                    let title = custom_tiles[item]['title']
+                    let image_type = custom_tiles[item]['image']['type']
+                    let image_url = custom_tiles[item]['image']['url']
+                    let blockers = custom_tiles[item]['blockers']
 
 
-                let edit_icon = document.createElement("button");
-                edit_icon.className="edit-icon";
+                    let button = document.createElement('button')
+                    button.style.background = `url(${image_url})`;
+                    button.style.width = "189px"
+                    button.style.height = "280px"
+                    button.style["background-repeat"] = "no-repeat"
+                    button.style["background-size"] = "contain"
+                    button.style["border"] = "none"
+                    button.style["filter"] = "drop-shadow(0px 0px 35px #444444)"
+                    button.style["margin"] = "20px";
+                    button.style["padding"] = "0px"
+                    button.style["cursor"] = "pointer"
+
+                    let tile = document.createElement("div")
+                    tile.style.position = "relative"
+                    tile.style.display = "inline-block"
+                    tile.style.margin = "40px"
+                    tile.style.cursor = "pointer"
+                    tile.style.textAlign = "center"
+                    tile.appendChild(button);
 
 
-                let tileHeader = document.createElement("div")
-                tileHeader.style.color = "white"
-                tileHeader.style.fontSize = "20px"
-                tileHeader.textContent = title
+                    let edit_icon = document.createElement("button");
+                    edit_icon.className = "edit-icon";
 
-                if (selected_tiles.includes(title)) {
-                    button.style["filter"] = "drop-shadow(0px 0px 25px #FFFFFF)"
+
+                    let tileHeader = document.createElement("div")
+                    tileHeader.style.color = "white"
+                    tileHeader.style.fontSize = "20px"
+                    tileHeader.textContent = title
+
+
+                    if (_.get(blockers, '[0]', '') != "ONCLICK_HANDLER_SPECIAL") {
+                        tile.addEventListener("click", this.select_custom_tile.bind(this, title, blockers, button, tileHeader))
+                        edit_icon.addEventListener("click", this.selected_custom_tile_edit.bind(this, title))
+                        tile.appendChild(edit_icon);
+
+                        if (!!_.get(custom_blockers, title)) {
+                            button.style["filter"] = "drop-shadow(0px 0px 25px #FFFFFF)"
+                        }
+                    } else {
+                        tile.addEventListener('click', start_form.bind(this))
+                    }
+
+                    tile.appendChild(tileHeader)
+
+                    custom_tiles_div.appendChild(tile);
+
                 }
-
-                if(_.get(blockers, '[0]', '') != "ONCLICK_HANDLER_SPECIAL"){
-                    tile.addEventListener("click", this.select_custom_tile.bind(this, title, blockers, button, tileHeader))
-                    edit_icon.addEventListener("click", this.selected_custom_tile_edit.bind(this, title))
-                    tile.appendChild(edit_icon);
-                }else{
-                    tile.addEventListener('click', start_form.bind(this))
-                }
-
-                tile.appendChild(tileHeader)
-
-                custom_tiles_div.appendChild(tile);
-
-            }
+            })
 
         })
     })
@@ -171,7 +175,7 @@ function clear_custom_tiles(){
 
 function custom_blocker_data(){
     return {
-        title: "",
+        title: "New",
         image: {"type": "internal", "url": "images/New_Blocker.png"},
         blockers: ["ONCLICK_HANDLER_SPECIAL"]
     }
@@ -197,7 +201,9 @@ function select_tile(key, button, header){
 
 }
 
-function select_custom_tile(key, blockers, button, header){
+function select_custom_tile(key, blockers, button, header, e){
+    e.stopPropagation();
+
     chrome.storage.sync.get('blockers_custom', function(data) {
 
         let selected_tiles = _.get(data, 'blockers_custom', {})
@@ -217,7 +223,8 @@ function select_custom_tile(key, blockers, button, header){
 
 }
 
-function selected_custom_tile_edit(title){
+function selected_custom_tile_edit(title, e){
+    e.stopPropagation();
     start_edit(title)
 }
 

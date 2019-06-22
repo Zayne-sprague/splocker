@@ -203,7 +203,7 @@ function form_submit(){
         var new_data = {
             "blockers": blockers,
             "title": title,
-            "image": {"type": "internal", "url": "images/New_Blocker.png"}
+            "image": {"type": "internal", "url": "images/TilePlaceholder.png"}
         }
 
         let custom_tiles = _.get(data, 'custom_blockers', [])
