@@ -7,13 +7,23 @@ let blocker_container = document.getElementById( 'blockersInputContainer');
 let image_container = document.getElementById( 'imageInputContainer');
 let next_container = document.getElementById( 'nextButtonContainer');
 let submit_container = document.getElementById('submitButtonContainer');
+let delete_container = document.getElementById( "deleteButtonContainer");
 
 //buttons
 let back_button = document.getElementById('formBackButton');
 let next_button = document.getElementById('formNextButton');
+let delete_button = document.getElementById('formDeleteButton');
+let edit_submit_button = document.getElementById("formEditSubmitButton");
+let form_edit_back_button = document.getElementById('formEditBackButton');
+
+//copy
+let title_copy = document.getElementById('titleInputCopy');
+let blocker_copy = document.getElementById('blockersInputCopy');
+let form_title_copy = document.getElementById('formTitle');
 
 //TODO - find a better way to remove event listeners from the buttons
 let actions_set = false;
+let edit_actions_set = false;
 // ^^^^^^^^^^^^^^^^^^^^^
 
 //TODO - find a way to save images locally, can't save it in server
@@ -27,6 +37,13 @@ function start_form(){
         console.log("no form detected.")
         return;
     }
+    edit_submit_button.style.display = "none";
+    form_edit_back_button.style.display = "none";
+    delete_container.style.display = 'none';
+    back_button.style.display = "block";
+    next_button.style.display = "block";
+
+
 
     if (!actions_set){
         back_button.addEventListener('click', this.form_back.bind(this))
@@ -34,6 +51,9 @@ function start_form(){
         actions_set = true;
     }
 
+    title_copy.innerText = "What do you want to call this blocker?";
+    blocker_copy.innerText = "What are key words you want to block?";
+    form_title_copy.innerText = "Let's make a new blocker!";
     current_state = 0;
     state[current_state]()
 
@@ -219,4 +239,119 @@ function reset_form(){
 function check_for_form(){
     return !form || _.size(form) > 1 || !home || _.size(home) > 1
 
+}
+
+
+
+//EDITING TILES
+
+
+let custom_tile;
+
+function start_edit(title) {
+    chrome.storage.sync.get('custom_blockers', function (data) {
+
+        custom_tile = _.get(_.filter(data.custom_blockers, (data)=>{ return _.get(data, 'title', '') == title }), '[0]')
+
+        if(!custom_tile) { return; }
+
+        delete_container.style.display = "block";
+        edit_submit_button.style.display = "block";
+        form_edit_back_button.style.display = "block";
+        next_container.style.display = "block";
+        back_button.style.display = "none";
+        next_button.style.display = "none";
+
+        let tagArea = $(document.getElementsByClassName('tagHere'))
+        for (var i = 0; i<_.size(custom_tile.blockers); i++){
+            var $tag = $("<div />"), $a = $("<a href='#' />"), $span = $("<span />");
+            $tag.addClass('tag');
+            $('<i class="fa fa-times" aria-hidden="true"></i>').appendTo($a);
+            $span.text(custom_tile.blockers[i]);
+            $a.bind('click', function(){
+                $(this).parent().remove();
+                $(this).unbind('click');
+            });
+            $a.appendTo($tag);
+            $span.appendTo($tag);
+            $tag.appendTo(tagArea);
+        }
+
+
+        $('#titleInput').val(custom_tile.title)
+
+
+        if (check_for_form()) {
+            console.log("no form detected.")
+            return;
+        }
+
+        if (!edit_actions_set) {
+            form_edit_back_button.addEventListener('click', this.exit_edit.bind(this))
+            edit_submit_button.addEventListener('click', this.edit_tile.bind(this, false))
+            delete_button.addEventListener('click', this.delete_tile.bind(this))
+            edit_actions_set = true;
+        }
+
+        title_copy.innerText = "Title"
+        blocker_copy.innerText = "Blockers"
+        form_title_copy.innerText = "Edit"
+
+        show_form()
+        //show and hide the respective containers for this page
+        title_container.style.display = 'block';
+        blocker_container.style.display = 'block';
+        image_container.style.display = 'none';
+        //                                                   //
+
+        document.getElementById('blockersInputContainerTags').style.top = "72%";
+        document.getElementById('titleInput').style.margin = "0px 0px 10px 0px"
+        document.getElementById("regular_note").className = "note push-up"
+        document.getElementById("phrase_note_warning").className = "red note push-up"
+
+        edit_submit_button.innerText = "Submit"
+
+    })
+}
+
+function reset_after_edit(){
+    document.getElementById('blockersInputContainerTags').style.top = "60%";
+    document.getElementById('titleInput').style.margin = "50px 0px 0px 0px"
+    document.getElementById("regular_note").className = "note"
+    document.getElementById("phrase_note_warning").className = "red note"
+
+    delete_container.style.display = "none";
+    edit_submit_button.style.display = "none";
+    form_edit_back_button.style.display = "none";
+}
+
+function exit_edit(){
+    reset_after_edit();
+
+
+    reset_form();
+    show_home();
+}
+
+function delete_tile(){
+    edit_tile(true);
+    construct_custom_options();
+}
+
+function edit_tile(delete_tile=false){
+    if(!custom_tile) {return;}
+
+    chrome.storage.sync.get('custom_blockers', function (data) {
+        let custom_tiles = _.filter(_.get(data, 'custom_blockers', []), function(data){ return data.title != custom_tile.title})
+
+        chrome.storage.sync.set({'custom_blockers': custom_tiles}, function() {
+            if (!delete_tile){
+                reset_after_edit();
+                form_submit();
+            }
+            else {
+                exit_edit();
+            }
+        })
+    })
 }

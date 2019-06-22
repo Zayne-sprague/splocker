@@ -120,11 +120,17 @@ function construct_custom_options(){
                 button.style["cursor"] = "pointer"
 
                 let tile = document.createElement("div")
+                tile.style.position = "relative"
                 tile.style.display = "inline-block"
                 tile.style.margin = "40px"
                 tile.style.cursor = "pointer"
                 tile.style.textAlign = "center"
                 tile.appendChild(button);
+
+
+                let edit_icon = document.createElement("button");
+                edit_icon.className="edit-icon";
+
 
                 let tileHeader = document.createElement("div")
                 tileHeader.style.color = "white"
@@ -137,6 +143,8 @@ function construct_custom_options(){
 
                 if(_.get(blockers, '[0]', '') != "ONCLICK_HANDLER_SPECIAL"){
                     tile.addEventListener("click", this.select_custom_tile.bind(this, title, blockers, button, tileHeader))
+                    edit_icon.addEventListener("click", this.selected_custom_tile_edit.bind(this, title))
+                    tile.appendChild(edit_icon);
                 }else{
                     tile.addEventListener('click', start_form.bind(this))
                 }
@@ -207,6 +215,10 @@ function select_custom_tile(key, blockers, button, header){
         })
     })
 
+}
+
+function selected_custom_tile_edit(title){
+    start_edit(title)
 }
 
 //TODO - this is good for debugging custom blockers

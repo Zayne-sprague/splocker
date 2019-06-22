@@ -30,6 +30,26 @@
             white-space: nowrap;
         }
 
+        .edit-icon{
+            position: absolute;
+            background: url(images/EditIcon.png);
+            background-size: contain;
+            background-repeat: no-repeat;
+            width: 45px;
+            height: 45px;
+            top: 5px;
+            right: 5px;
+            z-index: 10;
+            transform: rotate(45deg);
+            border: none;
+        }
+
+        .edit-icon:hover{
+            background: url(images/EditIconDark.png);
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
 
         #createForm{
             display: none;
@@ -209,6 +229,33 @@
             display: none;
         }
 
+        .note.push-up{
+            position: relative;
+            top: -30px;
+            margin-top: 0px;
+        }
+
+
+        #createForm #deleteButtonContainer{
+            position: absolute;
+            top: 15px;
+            right: 30px;
+        }
+
+        #createForm #deleteButtonContainer button{
+            width: 125px;
+            height: 40px;
+            border: none;
+            border-radius: 10px;
+            background-color: #F4F4F9;
+            font-size: 18px;
+        }
+
+        #createForm #deleteButtonContainer button:active{
+            background-color: darkgray;
+        }
+
+
 
 
     </style>
@@ -233,24 +280,36 @@
 <!-- CREATE FORM, form to create a new tile -->
 <div id="createForm">
     <div id="backButtonContainer">
-        <button id="formBackButton"></button>
+        <button id="formBackButton" class="formBackButton"></button>
+        <button id="formEditBackButton" class="formBackButton"></button>
+
     </div>
+
+
+    <div id="deleteButtonContainer">
+        <button id="formDeleteButton">Delete</button>
+    </div>
+
 
     <div id="formHolder">
         <div class="formInputs">
-            <div class="formTitle">Let's make a new blocker!</div>
+            <div class="formTitle" id="formTitle">Let's make a new blocker!</div>
             <br/>
             <br/>
 
 
             <div id="titleInputContainer">
-                What do you want to call this blocker?
+                <div id="titleInputCopy">
+                    What do you want to call this blocker?
+                </div>
                 <br>
                 <input type="text" id="titleInput" placeholder="Title" name="title" maxlength="30">
             </div>
 
             <div id="blockersInputContainer">
-                What are key words you want to block
+                <div id="blockersInputCopy">
+                    What are key words you want to block?
+                </div>
                 <br>
 
                 <div id="blockersInputContainerTags">
@@ -258,7 +317,7 @@
                     <input type="text" name="blockers" maxlength="30">
                 </div>
 
-                <div class="note">Use Enter or Tab to put in a phrase.</div>
+                <div id="regular_note" class="note">Use Enter or Tab to put in a phrase.</div>
                 <div id="phrase_note_warning" class="red note"></div>
             </div>
 
@@ -271,12 +330,16 @@
 
             <div id="nextButtonContainer">
                 <button id="formNextButton" class="nextButton">Continue</button>
+                <button id="formEditSubmitButton" class="nextButton">Submit</button>
             </div>
 
         </div>
     </div>
 </div>
 <!-- -------------------------------------- -->
+
+
+
 
 </body>
 <script src="lodash.min.js"></script>
