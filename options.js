@@ -6,6 +6,8 @@ let movie_tiles_div = document.getElementById('movieTiles');
 let show_tiles_div = document.getElementById('showTiles');
 let custom_tiles_div = document.getElementById("customTiles");
 
+const TOTAL_NUMBER_OF_CUSTOMS = 3;
+
 const BLOCKABLE_ITEMS = [
     {"title": "Avengers Endgame", "type":"movie", "key": "endgame", "url": "https://m.media-amazon.com/images/M/MV5BMTc5MDE2ODcwNV5BMl5BanBnXkFtZTgwMzI2NzQ2NzM@._V1_.jpg"},
     {"title": "Game Of Thrones", "type":"show", "key": "game_of_thrones", "url": "https://i.pinimg.com/originals/33/00/3a/33003a2dee1c9e2c87957153abcdc3b7.jpg"},
@@ -99,7 +101,7 @@ function construct_custom_options(){
             let custom_tiles = _.union(_.get(data, 'custom_blockers', []), [custom_blocker_data()])
             chrome.storage.sync.get('blockers_custom', function (custom_data) {
                 let custom_blockers = custom_data.blockers_custom;
-
+                let number_of_customs = _.size(custom_tiles);
 
                 for (var item in custom_tiles) {
 
@@ -107,6 +109,8 @@ function construct_custom_options(){
                     let image_type = custom_tiles[item]['image']['type']
                     let image_url = custom_tiles[item]['image']['url']
                     let blockers = custom_tiles[item]['blockers']
+
+                    const custom_creator = _.get(blockers, '[0]', '') == "ONCLICK_HANDLER_SPECIAL"
 
 
                     let button = document.createElement('button')
@@ -120,6 +124,10 @@ function construct_custom_options(){
                     button.style["margin"] = "20px";
                     button.style["padding"] = "0px"
                     button.style["cursor"] = "pointer"
+
+                    if (!!_.get(custom_tiles, title)){
+                        button.style["filter"] = "drop-shadow(0px 0px 10px #FFFFFF)"
+                    }
 
                     let tile = document.createElement("div")
                     tile.style.position = "relative"
@@ -140,9 +148,9 @@ function construct_custom_options(){
                     tileHeader.textContent = title
 
 
-                    if (_.get(blockers, '[0]', '') != "ONCLICK_HANDLER_SPECIAL") {
+                    if (!custom_creator) {
                         tile.addEventListener("click", this.select_custom_tile.bind(this, title, blockers, button, tileHeader))
-                        edit_icon.addEventListener("click", this.selected_custom_tile_edit.bind(this, title))
+                        edit_icon.addEventListener("click", this.selected_custom_tile_edit.bind(this, title, blockers, button, tileHeader))
                         tile.appendChild(edit_icon);
 
                         if (!!_.get(custom_blockers, title)) {
@@ -150,6 +158,10 @@ function construct_custom_options(){
                         }
                     } else {
                         tile.addEventListener('click', start_form.bind(this))
+                    }
+
+                    if(custom_creator && number_of_customs > TOTAL_NUMBER_OF_CUSTOMS){
+                        continue;
                     }
 
                     tile.appendChild(tileHeader)
@@ -195,14 +207,16 @@ function select_tile(key, button, header){
         }
 
         chrome.storage.sync.set({blockers: selected_tiles}, function(){
-            console.log("blocking " + selected_tiles);
+            chrome.tabs.query({currentWindow: true, active: true},function(tabArray) {
+                chrome.tabs.sendMessage(tabArray[0].id,"");
+            });
         })
     })
 
 }
 
 function select_custom_tile(key, blockers, button, header, e){
-    e.stopPropagation();
+    if(_.get(e, 'target.className') == "edit-icon"){return;}
 
     chrome.storage.sync.get('blockers_custom', function(data) {
 
@@ -223,14 +237,25 @@ function select_custom_tile(key, blockers, button, header, e){
 
 }
 
-function selected_custom_tile_edit(title, e){
-    e.stopPropagation();
+function selected_custom_tile_edit(title, blockers, button, tileHeader, e){
     start_edit(title)
+
+    chrome.storage.sync.get('blockers_custom', function (data) {
+        let custom_tiles = _.get(data, 'blockers_custom', [])
+
+
+        if (!!_.get(custom_tiles, title)) {
+            select_custom_tile(title, blockers, button, tileHeader)
+        }
+
+    })
+
+
 }
 
 //TODO - this is good for debugging custom blockers
 //chrome.storage.sync.set({'custom_blockers': []})
-
+//chrome.storage.sync.set({'blockers_custom': {}})
 
 construct_movie_options()
 construct_custom_options()

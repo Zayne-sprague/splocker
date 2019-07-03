@@ -4,8 +4,9 @@
     <head>
         <style>
             body {
-                width: 300px;
-                height: 140px;
+                width: 350px;
+                height: 550px;
+                max-height: 550px;
                 background-color: #111111;
 
             }
@@ -27,17 +28,321 @@
                 overflow: scroll;
                 white-space: nowrap;
             }
+
+            .edit-icon{
+                position: absolute;
+                background: url(images/EditIcon.png);
+                background-size: contain;
+                background-repeat: no-repeat;
+                width: 25px;
+                height: 25px;
+                top: 0px;
+                right: -15px;
+                z-index: 10;
+                transform: rotate(45deg);
+                border: none;
+            }
+
+            .edit-icon:hover{
+                background: url(images/EditIconDark.png);
+                background-size: contain;
+                background-repeat: no-repeat;
+            }
+
+
+            #createForm{
+                display: none;
+                color: white;
+                font-size: 20px;
+                text-align: center;
+                padding-top: 20px;
+                width: 100%;
+                height: 80%;
+            }
+
+            #createForm #formHolder{
+                height:100%;
+                padding-top: 60px;
+            }
+
+            #createForm #formHolder .formInputs{
+                width: 100%;
+                margin: 0 auto;
+                background: #F4F4F9;
+                color: black;
+                height: 100%;
+                filter: drop-shadow(0px 0px 25px #6F6F6F);
+            }
+
+            #createForm #backButtonContainer{
+                position: absolute;
+                top: 10px;
+                left: 30px;
+            }
+
+            .formTitle{
+                padding-top: 20px;
+            }
+
+            #createForm #backButtonContainer button{
+                background: url(images/BackArrow.png);
+                width: 50px;
+                height: 50px;
+                border: none;
+                background-repeat: no-repeat;
+                background-size: contain;
+            }
+
+            #createForm #titleInputContainer{
+                font-size: 15px;
+            }
+
+            #createForm input{
+                border: 1px solid #EAEAEF;
+                border-radius: 5px;
+                width: 60%;
+                height: 25px;
+                background: #F4F4F9;
+                margin-top: 50px;
+                padding:10px;
+                font-size: 12px;
+            }
+
+            #createForm input:placeholder-shown{
+                font-size: 12px;
+                color: #98989B;
+            }
+
+            #nextButtonContainer{
+                display: block;
+                position: absolute;
+                bottom: 0px;
+                left: 17%;
+                width: 66%;
+            }
+
+            #nextButtonContainer button{
+                width: 100%;
+                height: 50px;
+                border: none;
+                border-radius: 10px;
+                background-color: lightgray;
+                font-size: 20px;
+            }
+
+            #nextButtonContainer button:active {
+                background-color: darkgray;
+            }
+
+            #blockersInputContainer{
+                margin-top: 30px;
+                padding-bottom: 300px;
+            }
+
+
+            #blockersInputContainerTags {
+                padding: 20px;
+                width: 75%;
+                height: auto;
+                background: #fff;
+                border-radius: 4px;
+                box-shadow: 0 0px 50px rgba(0, 0, 0, 0.25);
+                outline: none;
+                font-size: 1em;
+                top: 52%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                position: absolute;
+                max-height: 150px;
+                overflow: scroll;
+            }
+
+            #blockersInputContainerTags input {
+                outline: none;
+                border: 0;
+                float: left;
+                padding: 8px;
+                background: none;
+                margin-top: 0px;
+                font-size: 12px;
+                border-radius: unset;
+                height: 100%;
+                width: 100%;
+            }
+
+            #blockersInputContainerTags input::before {
+                content: '';
+                display: table;
+            }
+
+            #blockersInputContainerTags input::after {
+                content: '';
+                display: table;
+                clear: both;
+            }
+
+            .tag {
+                border-radius: 3px;
+                background: #b5aff9;
+                float: left;
+                margin: 3px;
+                padding: 4px;
+                font-size: 12px;
+                vertical-align: middle;
+                box-shadow: 0px 1px 4px #c6c6c6,
+                0px 2px 17px #d1d1d1;
+            }
+            .tag a {
+                color: #000;
+                padding-right: 10px;
+                padding-left:5px;
+                padding-top: 5px;
+                padding-bottom: 5px;
+                margin-right: 5px;
+            }
+
+            .tag span {
+                padding-right: 10px;
+                padding-left: 0px;
+                padding-top: 5px;
+                padding-bottom: 5px;
+            }
+
+            .fa {
+                display: inline-block;
+                font: normal normal normal 14px/1 FontAwesome;
+                font-size: inherit;
+                text-rendering: auto;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+            }
+
+            .fa::before{
+                content:"\d7";
+
+            }
+
+            .note{
+                font-size: 12px;
+            }
+
+            .note.red{
+                color: red;
+                display: none;
+            }
+
+            .note.push-up{
+                position: relative;
+                margin-top: 0px;
+            }
+
+
+            #createForm #deleteButtonContainer{
+                position: absolute;
+                top: 15px;
+                right: 30px;
+            }
+
+            #createForm #deleteButtonContainer button{
+                width: 125px;
+                height: 40px;
+                border: none;
+                border-radius: 10px;
+                background-color: #F4F4F9;
+                font-size: 18px;
+            }
+
+            #createForm #deleteButtonContainer button:active{
+                background-color: darkgray;
+            }
+
+
+
         </style>
     </head>
 
-    <body>
-        <div class="tileHeader">Movies</div>
-        <div class="tileSlider" id="movieTiles">
+<body>
+<div id="home">
+
+<div class="tileHeader">Movies</div>
+    <div class="tileSlider" id="movieTiles">
+    </div>
+    <div class="tileHeader">TV Shows</div>
+    <div class="tileSlider" id="showTiles">
+    </div>
+    <div class="tileHeader">Custom</div>
+    <div class="tileSlider" id="customTiles">
+    </div>
+</div>
+
+
+
+<!-- CREATE FORM, form to create a new tile -->
+<div id="createForm">
+    <div id="backButtonContainer">
+        <button id="formBackButton" class="formBackButton"></button>
+        <button id="formEditBackButton" class="formBackButton"></button>
+
+    </div>
+
+
+    <div id="deleteButtonContainer">
+        <button id="formDeleteButton">Delete</button>
+    </div>
+
+
+    <div id="formHolder">
+        <div class="formInputs">
+            <div class="formTitle" id="formTitle">Let's make a new blocker!</div>
+            <br/>
+            <br/>
+
+
+            <div id="titleInputContainer">
+                <div id="titleInputCopy">
+                    What do you want to call this blocker?
+                </div>
+                <br>
+                <input type="text" id="titleInput" placeholder="Title" name="title" maxlength="30">
+            </div>
+
+            <div id="blockersInputContainer">
+                <div id="blockersInputCopy">
+                    What are key words you want to block?
+                </div>
+                <br>
+
+                <div id="blockersInputContainerTags">
+                    <div class="tagHere"></div>
+                    <input type="text" name="blockers" maxlength="30">
+                </div>
+
+                <div id="regular_note" class="note">Use Enter or Tab to put in a phrase.</div>
+                <div id="phrase_note_warning" class="red note"></div>
+            </div>
+
+            <div id="imageInputContainer">
+                Would you like to put an image to your blocker? (optional)
+                <br>
+                <input type="text" name="image">
+            </div>
+
+
+            <div id="nextButtonContainer">
+                <button id="formNextButton" class="nextButton">Continue</button>
+                <button id="formEditSubmitButton" class="nextButton">Submit</button>
+            </div>
+
         </div>
-        <div class="tileHeader">TV Shows</div>
-        <div class="tileSlider" id="showTiles">
-        </div>
-        <script src="popup.js"></script>
-        <script src="spoilers/manifest.js"></script>
-    </body>
+    </div>
+</div>
+<!-- -------------------------------------- -->
+<script src="lodash.min.js"></script>
+<script src="jquery.min.js"></script>
+<script src="tag-collector.js"></script>
+<script src="create_blocker_form.js"></script>
+<script src="spoilers/manifest.js"></script>
+<script src="popup.js"></script>
+
+</body>
 </html>

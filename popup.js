@@ -1,7 +1,9 @@
 
 let movieTilesDiv = document.getElementById('movieTiles')
 let show_tiles_div = document.getElementById('showTiles');
+let custom_tiles_div = document.getElementById("customTiles");
 
+const TOTAL_NUMBER_OF_CUSTOMS = 3;
 
 const BLOCKABLE_ITEMS = [
     {"title": "Avengers Endgame", "type":"movie", "key": "endgame", "url": "https://m.media-amazon.com/images/M/MV5BMTc5MDE2ODcwNV5BMl5BanBnXkFtZTgwMzI2NzQ2NzM@._V1_.jpg"},
@@ -105,7 +107,154 @@ function construct_movie_options(){
     })
 }
 
+
+function construct_custom_options(){
+    clear_custom_tiles();
+
+
+    chrome.storage.sync.get('blockers', function(data) {
+        let selected_tiles = data.blockers
+
+        chrome.storage.sync.get('custom_blockers', function (data) {
+            let custom_tiles = _.union(_.get(data, 'custom_blockers', []), [custom_blocker_data()])
+            chrome.storage.sync.get('blockers_custom', function (custom_data) {
+                let custom_blockers = custom_data.blockers_custom;
+                let number_of_customs = _.size(custom_tiles);
+
+                for (var item in custom_tiles) {
+
+                    let title = custom_tiles[item]['title']
+                    let image_type = custom_tiles[item]['image']['type']
+                    let image_url = custom_tiles[item]['image']['url']
+                    let blockers = custom_tiles[item]['blockers']
+                    const selected = !!_.get(custom_tiles, title);
+
+                    const custom_creator = _.get(blockers, '[0]', '') == "ONCLICK_HANDLER_SPECIAL"
+
+
+                    let button = document.createElement('button')
+                    button.style.background = `url(${image_url})`;
+                    button.style.width = "80px"
+                    button.style.height = "120px"
+                    button.style["background-repeat"] = "no-repeat"
+                    button.style["background-size"] = "contain"
+                    button.style["border"] = "none"
+                    button.style["filter"] = "drop-shadow(0px 0px 10px #444444)"
+                    button.style["padding"] = "0px"
+                    button.style["cursor"] = "pointer"
+
+                    if (selected){
+                        button.style["filter"] = "drop-shadow(0px 0px 10px #FFFFFF)"
+                    }
+
+                    let tile = document.createElement("div")
+                    tile.style.position = "relative"
+                    tile.style.display = "inline-block"
+                    tile.style.margin = "20px"
+                    tile.style.cursor = "pointer"
+                    tile.style.textAlign = "center"
+                    tile.appendChild(button);
+
+
+                    let edit_icon = document.createElement("button");
+                    edit_icon.className = "edit-icon";
+
+
+                    let tileHeader = document.createElement("div")
+                    tileHeader.style.color = "white"
+                    tileHeader.style.fontSize = "10px"
+                    tileHeader.textContent = title
+
+
+                    if (!custom_creator) {
+                        tile.addEventListener("click", this.select_custom_tile.bind(this, title, blockers, button, tileHeader))
+                        edit_icon.addEventListener("click", this.selected_custom_tile_edit.bind(this, title, blockers, button, tileHeader))
+                        tile.appendChild(edit_icon);
+
+                        if (!!_.get(custom_blockers, title)) {
+                            button.style["filter"] = "drop-shadow(0px 0px 10px #FFFFFF)"
+                        }
+                    } else {
+                        tile.addEventListener('click', start_form.bind(this))
+                    }
+
+                    if(custom_creator && number_of_customs > TOTAL_NUMBER_OF_CUSTOMS){
+                        continue;
+                    }
+
+                    tile.appendChild(tileHeader)
+
+                    custom_tiles_div.appendChild(tile);
+
+                }
+            })
+
+        })
+    })
+
+
+}
+
+function clear_custom_tiles(){
+    let tiles = $("#customTiles div")
+
+    for (var i = 0; i < tiles.length; i++){
+        tiles.remove();
+    }
+}
+
+function custom_blocker_data(){
+    return {
+        title: "New",
+        image: {"type": "internal", "url": "images/New_Blocker.png"},
+        blockers: ["ONCLICK_HANDLER_SPECIAL"]
+    }
+}
+
+function select_custom_tile(key, blockers, button, header, e){
+    if(_.get(e, 'target.className') == "edit-icon"){return;}
+
+    chrome.storage.sync.get('blockers_custom', function(data) {
+
+        let selected_tiles = _.get(data, 'blockers_custom', {})
+
+        if(_.get(selected_tiles, key)){
+            delete selected_tiles[`${key}`]
+            button.style["filter"] = "drop-shadow(0px 0px 35px #444444)"
+        }else{
+            selected_tiles[key] = blockers;
+            button.style["filter"] = "drop-shadow(0px 0px 25px #FFFFFF)"
+        }
+
+        chrome.storage.sync.set({blockers_custom: selected_tiles}, function(){
+            chrome.tabs.query({currentWindow: true, active: true},function(tabArray) {
+                chrome.tabs.sendMessage(tabArray[0].id,"");
+            });
+        })
+    })
+
+}
+
+function selected_custom_tile_edit(title, blockers, button, tileHeader, e){
+    start_edit(title)
+
+    chrome.storage.sync.get('blockers_custom', function (data) {
+        let custom_tiles = _.get(data, 'blockers_custom', [])
+
+
+        if (!!_.get(custom_tiles, title)) {
+            select_custom_tile(title, blockers, button, tileHeader)
+        }
+
+    })
+
+
+}
+
+//TODO - this is good for debugging custom blockers
+//chrome.storage.sync.set({'custom_blockers': []})
+//chrome.storage.sync.set({'blockers_custom': {}})
+
+
 construct_movie_options()
-
-
-
+construct_custom_options()
