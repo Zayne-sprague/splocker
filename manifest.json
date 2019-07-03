@@ -1,7 +1,7 @@
 {
   "name": "Splocker Beta",
-  "version": "0.0.0.2",
-  "description": "Block Spoilers for Hot Movies and Tv shows!",
+  "version": "0.0.0.3",
+  "description": "Block Spoilers For New TV Shows and Movies!",
   "permissions": ["activeTab", "declarativeContent", "storage", "<all_urls>"],
   "options_page": "options.html",
   "background":{
